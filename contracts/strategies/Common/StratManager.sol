@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
@@ -16,6 +16,12 @@ contract StratManager is Ownable, Pausable {
     address public unirouter;
     address public vault;
     address public mondayFeeRecipient;
+    address public intensivePoolFeeRecipient;
+
+    event SetKeeper(address addr);
+    event SetUnirouter(address addr);
+    event SetVault(address addr);
+    event SetMondayFeeRecipient(address addr);
 
     /**
      * @dev Initializes the base strategy.
@@ -23,17 +29,20 @@ contract StratManager is Ownable, Pausable {
      * @param _unirouter router to use for swaps
      * @param _vault address of parent vault.
      * @param _mondayFeeRecipient address where to send monday's fees.
+     * @param _mondayFeeRecipient address where to send intensive pool's fees.
      */
     constructor(
         address _keeper,
         address _unirouter,
         address _vault,
-        address _mondayFeeRecipient
+        address _mondayFeeRecipient,
+        address _intensivePoolFeeRecipient
     ) {
         keeper = _keeper;
         unirouter = _unirouter;
         vault = _vault;
         mondayFeeRecipient = _mondayFeeRecipient;
+        intensivePoolFeeRecipient = _intensivePoolFeeRecipient;
     }
 
     // checks that caller is either owner or keeper.
@@ -48,6 +57,8 @@ contract StratManager is Ownable, Pausable {
      */
     function setKeeper(address _keeper) external onlyManager {
         keeper = _keeper;
+
+        emit SetKeeper(_keeper);
     }
 
     /**
@@ -56,6 +67,8 @@ contract StratManager is Ownable, Pausable {
      */
     function setUnirouter(address _unirouter) external onlyOwner {
         unirouter = _unirouter;
+
+        emit SetUnirouter(_unirouter);
     }
 
     /**
@@ -64,6 +77,8 @@ contract StratManager is Ownable, Pausable {
      */
     function setVault(address _vault) external onlyOwner {
         vault = _vault;
+
+        emit SetVault(_vault);
     }
 
     /**
@@ -72,6 +87,8 @@ contract StratManager is Ownable, Pausable {
      */
     function setMondayFeeRecipient(address _mondayFeeRecipient) external onlyOwner {
         mondayFeeRecipient = _mondayFeeRecipient;
+
+        emit SetMondayFeeRecipient(_mondayFeeRecipient);
     }
 
     /**

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -41,6 +41,9 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
     event StratHarvest(address indexed harvester, uint256 wantHarvested, uint256 tvl);
     event Deposit(uint256 tvl);
     event Withdraw(uint256 tvl);
+    event SetPendingRewardsFunctionName(string name);
+    event SetHarvestOnDeposit(bool harvestOnDeposit);
+    event SetShouldGasThrottle(bool throttle);
 
     constructor(
         address _want,
@@ -50,10 +53,12 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
         address _unirouter,
         address _keeper,
         address _mondayFeeRecipient,
+        address _intensivePoolFeeRecipient,
         address[] memory _outputToNativeRoute,
         address[] memory _outputToLp0Route,
         address[] memory _outputToLp1Route
-    ) StratManager(_keeper, _unirouter, _vault, _mondayFeeRecipient) {
+    ) StratManager(_keeper, _unirouter, _vault, _mondayFeeRecipient,_intensivePoolFeeRecipient) {
+
         want = _want;
         poolId = _poolId;
         chef = _chef;
@@ -72,7 +77,6 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
         require(_outputToLp1Route[0] == output, "outputToLp1Route[0] != output");
         require(_outputToLp1Route[_outputToLp1Route.length - 1] == lpToken1, "outputToLp1Route[last] != lpToken1");
         outputToLp1Route = _outputToLp1Route;
-
         _giveAllowances();
     }
 
@@ -146,13 +150,16 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
 
     // performance fees
     function chargeFees(address callFeeRecipient) internal {
-        uint256 toNative = IERC20(output).balanceOf(address(this)).mul(45).div(1000);
+        uint256 toNative = IERC20(output).balanceOf(address(this)).mul(150).div(1000);
         IUniswapRouterETH(unirouter).swapExactTokensForTokens(toNative, 0, outputToNativeRoute, address(this), block.timestamp);
 
         uint256 nativeBal = IERC20(native).balanceOf(address(this));
 
         uint256 callFeeAmount = nativeBal.mul(callFee).div(MAX_FEE);
         IERC20(native).safeTransfer(callFeeRecipient, callFeeAmount);
+
+        uint256 intensivePoolFeeAmount = nativeBal.mul(intensivePoolFee).div(MAX_FEE);
+        IERC20(native).safeTransfer(intensivePoolFeeRecipient, intensivePoolFeeAmount);
 
         uint256 mondayFeeAmount = nativeBal.mul(mondayFee).div(MAX_FEE);
         IERC20(native).safeTransfer(mondayFeeRecipient, mondayFeeAmount);
@@ -193,6 +200,8 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
 
     function setPendingRewardsFunctionName(string calldata _pendingRewardsFunctionName) external onlyManager {
         pendingRewardsFunctionName = _pendingRewardsFunctionName;
+
+        emit SetPendingRewardsFunctionName(_pendingRewardsFunctionName);
     }
 
     // returns rewards unharvested
@@ -222,7 +231,7 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
             catch {}
         }
 
-        return nativeOut.mul(45).div(1000).mul(callFee).div(MAX_FEE);
+        return nativeOut.mul(150).div(1000).mul(callFee).div(MAX_FEE);
     }
 
     function setHarvestOnDeposit(bool _harvestOnDeposit) external onlyManager {
@@ -233,13 +242,17 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
         } else {
             setWithdrawalFee(10);
         }
+
+        emit SetHarvestOnDeposit(_harvestOnDeposit);
     }
 
     function setShouldGasThrottle(bool _shouldGasThrottle) external onlyManager {
         shouldGasThrottle = _shouldGasThrottle;
+
+        emit SetShouldGasThrottle(_shouldGasThrottle);
     }
 
-    function pause() public onlyManager {
+    function pause() external onlyManager {
         _pause();
 
         _removeAllowances();
@@ -255,6 +268,7 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
 
     function _giveAllowances() internal {
         IERC20(want).safeApprove(chef, type(uint256).max);
+
         IERC20(output).safeApprove(unirouter, type(uint256).max);
 
         IERC20(lpToken0).safeApprove(unirouter, 0);

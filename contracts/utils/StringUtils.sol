@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.12;
 
 library StringUtils {
     function concat(string memory a, string memory b) internal pure returns (string memory) {
