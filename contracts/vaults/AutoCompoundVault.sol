@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -19,15 +19,10 @@ contract AutoCompoundVault is ERC20, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    struct StratCandidate {
-        address implementation;
-        uint proposedTime;
-    }
-
-    // The last proposed strategy to switch to.
-    StratCandidate public stratCandidate;
     // The strategy currently in use by the vault.
     IStrategy public strategy;
+
+    event TokenStuck(address token);
 
     /**
      * @dev Sets the value of {token} to the token that the vault will
@@ -157,5 +152,7 @@ contract AutoCompoundVault is ERC20, Ownable, ReentrancyGuard {
 
         uint256 amount = IERC20(_token).balanceOf(address(this));
         IERC20(_token).safeTransfer(msg.sender, amount);
+
+        emit TokenStuck(_token);
     }
 }
