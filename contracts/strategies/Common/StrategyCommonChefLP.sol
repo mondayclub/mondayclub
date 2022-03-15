@@ -231,7 +231,7 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
             catch {}
         }
 
-        return nativeOut.mul(45).div(1000).mul(callFee).div(MAX_FEE);
+        return nativeOut.mul(150).div(1000).mul(callFee).div(MAX_FEE);
     }
 
     function setHarvestOnDeposit(bool _harvestOnDeposit) external onlyManager {
