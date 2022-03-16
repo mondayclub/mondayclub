@@ -53,11 +53,11 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
         address _unirouter,
         address _keeper,
         address _mondayFeeRecipient,
-        address _intensivePoolFeeRecipient,
+        address _incentivePoolFeeRecipient,
         address[] memory _outputToNativeRoute,
         address[] memory _outputToLp0Route,
         address[] memory _outputToLp1Route
-    ) StratManager(_keeper, _unirouter, _vault, _mondayFeeRecipient,_intensivePoolFeeRecipient) {
+    ) StratManager(_keeper, _unirouter, _vault, _mondayFeeRecipient,_incentivePoolFeeRecipient) {
 
         want = _want;
         poolId = _poolId;
@@ -158,8 +158,8 @@ contract StrategyCommonChefLP is StratManager, FeeManager, GasThrottler {
         uint256 callFeeAmount = nativeBal.mul(callFee).div(MAX_FEE);
         IERC20(native).safeTransfer(callFeeRecipient, callFeeAmount);
 
-        uint256 intensivePoolFeeAmount = nativeBal.mul(intensivePoolFee).div(MAX_FEE);
-        IERC20(native).safeTransfer(intensivePoolFeeRecipient, intensivePoolFeeAmount);
+        uint256 incentivePoolFeeAmount = nativeBal.mul(incentivePoolFee).div(MAX_FEE);
+        IERC20(native).safeTransfer(incentivePoolFeeRecipient, incentivePoolFeeAmount);
 
         uint256 mondayFeeAmount = nativeBal.mul(mondayFee).div(MAX_FEE);
         IERC20(native).safeTransfer(mondayFeeRecipient, mondayFeeAmount);
