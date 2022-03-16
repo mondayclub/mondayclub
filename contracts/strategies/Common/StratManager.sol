@@ -16,7 +16,7 @@ contract StratManager is Ownable, Pausable {
     address public unirouter;
     address public vault;
     address public mondayFeeRecipient;
-    address public intensivePoolFeeRecipient;
+    address public incentivePoolFeeRecipient;
 
     event SetKeeper(address addr);
     event SetUnirouter(address addr);
@@ -29,20 +29,20 @@ contract StratManager is Ownable, Pausable {
      * @param _unirouter router to use for swaps
      * @param _vault address of parent vault.
      * @param _mondayFeeRecipient address where to send monday's fees.
-     * @param _mondayFeeRecipient address where to send intensive pool's fees.
+     * @param _incentivePoolFeeRecipient address where to send incentive pool's fees.
      */
     constructor(
         address _keeper,
         address _unirouter,
         address _vault,
         address _mondayFeeRecipient,
-        address _intensivePoolFeeRecipient
+        address _incentivePoolFeeRecipient
     ) {
         keeper = _keeper;
         unirouter = _unirouter;
         vault = _vault;
         mondayFeeRecipient = _mondayFeeRecipient;
-        intensivePoolFeeRecipient = _intensivePoolFeeRecipient;
+        incentivePoolFeeRecipient = _incentivePoolFeeRecipient;
     }
 
     // checks that caller is either owner or keeper.
